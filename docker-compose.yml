@@ -3,5 +3,9 @@ services:
     build: .
     ports:
       - "8000:8000"
-    env_file:
-      - .env
+    restart: unless-stopped
+    environment:
+      - NOCODB_BASE_URL
+      - NOCODB_API_TOKEN
+      - OPENAI_API_KEY
+      - ANTHROPIC_API_KEY
