@@ -1,0 +1,22 @@
+import os
+
+estructura = {
+    "requirements.txt": "fastapi>=0.110.0\nuvicorn>=0.28.0\nhttpx>=0.27.0\npydantic>=2.6.0\npydantic-settings>=2.2.0\npython-dotenv>=1.0.1\n",
+    ".env.example": "NOCODB_BASE_URL=http://51.170.46.228:8080\nNOCODB_API_TOKEN=tu_token_aqui\nNOCODB_PROJECT_ID=pk3vzex0uvkj8h9\n",
+    "app/__init__.py": "",
+    "app/core/__init__.py": "",
+    "app/core/config.py": "from pydantic_settings import BaseSettings, SettingsConfigDict\n\nclass Settings(BaseSettings):\n    NOCODB_BASE_URL: str\n    NOCODB_API_TOKEN: str\n    NOCODB_PROJECT_ID: str\n\n    model_config = SettingsConfigDict(env_file=\".env\", extra=\"ignore\")\n\nsettings = Settings()\n",
+    "app/nocodb/__init__.py": "",
+    "app/nocodb/client.py": "import httpx\nfrom typing import Any, Dict, Optional\nfrom app.core.config import settings\n\nclass NocoDBClient:\n    def __init__(self):\n        self.base_url = settings.NOCODB_BASE_URL.rstrip('/')\n        self.headers = {\n            \"xc-token\": settings.NOCODB_API_TOKEN,\n            \"Content-Type\": \"application/json\"\n        }\n\n    async def get_records(self, table_id: str, params: Optional[Dict[str, Any]] = None) -> list[dict]:\n        url = f\"{self.base_url}/api/v2/tables/{table_id}/records\"\n        async with httpx.AsyncClient(timeout=15.0) as client:\n            response = await client.get(url, headers=self.headers, params=params)\n            response.raise_for_status()\n            data = response.json()\n            return data.get(\"list\", [])\n\n    async def create_record(self, table_id: str, payload: Dict[str, Any]) -> dict:\n        url = f\"{self.base_url}/api/v2/tables/{table_id}/records\"\n        async with httpx.AsyncClient(timeout=15.0) as client:\n            response = await client.post(url, headers=self.headers, json=payload)\n            response.raise_for_status()\n            return response.json()\n\n    async def update_record(self, table_id: str, payload: Dict[str, Any]) -> dict:\n        url = f\"{self.base_url}/api/v2/tables/{table_id}/records\"\n        async with httpx.AsyncClient(timeout=15.0) as client:\n            response = await client.patch(url, headers=self.headers, json=payload)\n            response.raise_for_status()\n            return response.json()\n\nnocodb_client = NocoDBClient()\n",
+    "app/nocodb/operations.py": "from typing import Any, Dict, Optional\nfrom app.nocodb.client import nocodb_client\n\nTABLE_REGISTRO_INICIAL = \"mucsj28ln1jblhn\"\nTABLE_CLIENTE = \"m9k34vkkkxsjvjx\"\nTABLE_EDUCACION_FORMAL = \"mdrpxkkjnek3bnz\"\nTABLE_EDUCACION_COMPLEMENTARIA = \"m5ep5vrkxeh1cj2\"\nTABLE_EXPERIENCIA_LABORAL = \"meep3gzbjy5npny\"\nTABLE_HABILIDADES = \"m4556t35kl1yd8h\"\n\nasync def buscar_registro_inicial(id_slack: str) -> Optional[dict]:\n    params = {\"where\": f\"(ID_Slack,eq,{id_slack})\", \"limit\": 1}\n    records = await nocodb_client.get_records(TABLE_REGISTRO_INICIAL, params)\n    return records[0] if records else None\n\nasync def crear_cliente(payload: Dict[str, Any]) -> dict:\n    return await nocodb_client.create_record(TABLE_CLIENTE, payload)\n\nasync def actualizar_cliente(payload: Dict[str, Any]) -> dict:\n    return await nocodb_client.update_record(TABLE_CLIENTE, payload)\n\nasync def crear_educacion_formal(payload: Dict[str, Any]) -> dict:\n    return await nocodb_client.create_record(TABLE_EDUCACION_FORMAL, payload)\n\nasync def crear_educacion_complementaria(payload: Dict[str, Any]) -> dict:\n    return await nocodb_client.create_record(TABLE_EDUCACION_COMPLEMENTARIA, payload)\n\nasync def crear_experiencia_laboral(payload: Dict[str, Any]) -> dict:\n    return await nocodb_client.create_record(TABLE_EXPERIENCIA_LABORAL, payload)\n\nasync def crear_habilidad(payload: Dict[str, Any]) -> dict:\n    return await nocodb_client.create_record(TABLE_HABILIDADES, payload)\n",
+    "test_db.py": "import asyncio\nfrom app.nocodb.operations import buscar_registro_inicial\n\nasync def test():\n    id_prueba = \"1783902153.053739\"\n    registro = await buscar_registro_inicial(id_prueba)\n    print(\"Registro recuperado:\", registro)\n\nif __name__ == \"__main__\":\n    asyncio.run(test())\n"
+}
+
+for filepath, content in estructura.items():
+    dirname = os.path.dirname(filepath)
+    if dirname:
+        os.makedirs(dirname, exist_ok=True)
+    with open(filepath, "w", encoding="utf-8") as f:
+        f.write(content)
+
+print("Estructura base de Novo Talento creada. Configura tu archivo .env e instala requirements.txt")
