@@ -9,3 +9,9 @@ services:
       - NOCODB_API_TOKEN
       - OPENAI_API_KEY
       - ANTHROPIC_API_KEY
+    networks:
+      - novotalento_default
+
+networks:
+  novotalento_default:
+    external: true
