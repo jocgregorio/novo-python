@@ -5,12 +5,11 @@ services:
       - "8000:8000"
     restart: unless-stopped
     environment:
-  - NOCODB_BASE_URL
-  - NOCODB_API_TOKEN
-  - OPENAI_API_KEY
-  - ANTHROPIC_API_KEY
-  - NOCODB_PROJECT_ID
-      
+      - NOCODB_BASE_URL
+      - NOCODB_API_TOKEN
+      - OPENAI_API_KEY
+      - ANTHROPIC_API_KEY
+      - NOCODB_PROJECT_ID=pk3vzex0uvkj8h9
     networks:
       - novotalento_default
 
